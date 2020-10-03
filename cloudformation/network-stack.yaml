@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'udemy-rails-kj CloudFormation Network Resources Template.'
+Resources:
+    VPC:
+        Type: AWS::EC2::VPC
+        Properties: 
+            CidrBlock: 10.0.0.0/16
+            EnableDnsHostnames: true
+            EnableDnsSupport: true
+            InstanceTenancy: default
+            Tags: 
+                - Key: Name
+                  Value: udmey-rails-kj-vpc
+    PublicSubnet1a:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: 10.0.10.0/24
+            AvailabilityZone: ap-northeast-1a
+            Tags:
+                - Key: Name
+                  Value: udemy-rails-kj-public-subnet-1a
+    PublicSubnet1c:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: 10.0.11.0/24
+            AvailabilityZone: ap-northeast-1c
+            Tags:
+                - Key: Name
+                  Value: udemy-rails-kj-public-subnet-1c
+    PrivateSubnet1a:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: 10.0.20.0/24
+            AvailabilityZone: ap-northeast-1a
+            Tags:
+                - Key: Name
+                  Value: udemy-rails-kj-private-subnet-1a
+    PrivateSubnet1c:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: 10.0.21.0/24
+            AvailabilityZone: ap-northeast-1c
+            Tags:
+                - Key: Name
+                  Value: udemy-rails-kj-private-subnet-1c
+    InternetGateway:
+        Type: AWS::EC2::InternetGateway
+        Properties:
+          Tags:
+            - Key: Name
+              Value: udemy-rails-kj-internet-gateway
+    AttachGateway:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+          VpcId: !Ref VPC
+          InternetGatewayId: !Ref InternetGateway
+    WebRouteTable:
+        Type: AWS::EC2::RouteTable
+        Properties:
+          VpcId: !Ref VPC
+          Tags:
+            - Key: Name
+              Value: udemy-rails-kj-route-table
+    WebRoute:
+        Type: AWS::EC2::Route
+        DependsOn: InternetGateway
+        Properties:
+            RouteTableId: !Ref WebRouteTable
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref InternetGateway
+    PubSub1aRouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref PublicSubnet1a
+            RouteTableId: !Ref WebRouteTable
+    PubSub1cRouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            SubnetId: !Ref PublicSubnet1c
+            RouteTableId: !Ref WebRouteTable
+Outputs:
+    VPC:
+        Value: !Ref VPC
+        Export:
+            Name: VPC
+    PublicSubnet1a:
+        Value: !Ref PublicSubnet1a
+        Export:
+            Name: PublicSubnet1a
+    PublicSubnet1c:
+        Value: !Ref PublicSubnet1c
+        Export:
+            Name: PublicSubnet1c
+    PrivateSubnet1a:
+        Value: !Ref PrivateSubnet1a
+        Export:
+            Name: PrivateSubnet1a
+    PrivateSubnet1c:
+        Value: !Ref PrivateSubnet1c
+        Export:
+            Name: PrivateSubnet1c
+    
+

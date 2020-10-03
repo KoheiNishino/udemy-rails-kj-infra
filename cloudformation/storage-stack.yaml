@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'udemy-rails-kj CloudFormation Storage Resources Template.'
+Resources:
+    ProfilePhotoBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: udemy-rails-kj-profile-photo
+            Tags: 
+              - Key: Name
+                Value: udemy-rails-kj-profile-photo

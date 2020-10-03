@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'udemy-rails-kj CloudFormation Computing Resources Template.'
+Parameters:
+    KeyPair:
+        Description: 'KeyPair Name'
+        Type: AWS::EC2::KeyPair::KeyName
+    EC2ImageId:
+        Type: AWS::SSM::Parameter::Value<String>
+        Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    EC2InstanceType:
+        Type: String
+        Default: t2.micro
+Resources:
+    SecurityGroupWeb:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Allow http to client host
+            GroupName: udemy-rails-kj-web-sg
+            VpcId: !ImportValue VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: 0.0.0.0/0
+            Tags:
+                - Key: Name
+                  Value: udemy-rails-kj-web
+    EC2: 
+        Type: AWS::EC2::Instance
+        Properties:
+            ImageId: !Ref EC2ImageId
+            BlockDeviceMappings: 
+              - DeviceName: /dev/xvda
+                Ebs: 
+                  VolumeType: gp2
+                  DeleteOnTermination: true
+                  VolumeSize: 8
+            InstanceType: !Ref EC2InstanceType
+            KeyName: !Ref KeyPair
+            NetworkInterfaces: 
+                - AssociatePublicIpAddress: true
+                  DeviceIndex: 0
+                  GroupSet: 
+                    - !Ref SecurityGroupWeb
+                  SubnetId: !ImportValue PublicSubnet1a
+            UserData:
+                Fn::Base64: |
+                    #!/bin/bash
+                    sudo yum update -y
+            Tags:
+              - Key: Name
+                Value: udemy-rails-kj-web
+    TargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties: 
+            HealthCheckIntervalSeconds: 30
+            HealthCheckPath: /
+            HealthCheckPort: traffic-port
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 5
+            HealthyThresholdCount: 5
+            Matcher: 
+              HttpCode: 200
+            Name: udemy-rails-kj-tg
+            Port: 80
+            Protocol: HTTP
+            Tags:
+              - Key: Name
+                Value: udemy-rails-kj-tg
+            TargetGroupAttributes: 
+              - Key: deregistration_delay.timeout_seconds
+                Value: 300
+              - Key: stickiness.enabled
+                Value: false
+              - Key: slow_start.duration_seconds
+                Value: 0
+              - Key: load_balancing.algorithm.type
+                Value: round_robin
+            Targets: 
+              - Id: !Ref EC2
+                Port: 80
+            TargetType: instance
+            UnhealthyThresholdCount: 2
+            VpcId: !ImportValue VPC
+    ALB:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties: 
+            IpAddressType: ipv4
+            LoadBalancerAttributes: 
+              - Key: idle_timeout.timeout_seconds
+                Value: 300
+            Name: udemy-rails-kj-alb
+            Scheme: internet-facing
+            SecurityGroups:
+              - !Ref SecurityGroupWeb
+            Subnets: 
+              - !ImportValue PublicSubnet1a
+              - !ImportValue PublicSubnet1c
+            Tags: 
+              - Key: Name
+                Value: udemy-rails-kj-alb
+            Type: application
+    ALBListener: 
+        Type: "AWS::ElasticLoadBalancingV2::Listener"
+        Properties: 
+            DefaultActions: 
+              - TargetGroupArn: !Ref TargetGroup
+                Type: forward
+            LoadBalancerArn: !Ref ALB
+            Port: 80
+            Protocol: HTTP
+Outputs:
+    SecurityGroupWeb:
+        Value: !Ref SecurityGroupWeb
+        Export:
+          Name: SecurityGroupWeb

@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'udemy-rails-kj CloudFormation Database Resources Template.'
+Parameters:
+    MasterUsername:
+        Type: String
+    MasterUserPassword:
+        Type: String
+        NoEcho: true
+Resources:
+  SecurityGroupDB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow MYSQL/Aurora to client host
+        GroupName: udemy-rails-kj-db-sg
+        VpcId: !ImportValue VPC
+        SecurityGroupIngress:
+            - IpProtocol: tcp
+              FromPort: 3306
+              ToPort: 3306
+              SourceSecurityGroupId: !ImportValue SecurityGroupWeb
+        Tags:
+            - Key: Name
+              Value: udemy-rails-kj-db
+  RDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+        AvailabilityZone: ap-northeast-1a
+        DBInstanceIdentifier: udemy-rails-kj-db
+        DBInstanceClass: db.t2.micro
+        Engine: mysql
+        EngineVersion: 8.0.17
+        AllocatedStorage: 20
+        StorageType: standard
+        MasterUsername: !Ref MasterUsername
+        MasterUserPassword: !Ref MasterUserPassword
+        PubliclyAccessible: false
+        AutoMinorVersionUpgrade: true
+        CopyTagsToSnapshot: true
+        VPCSecurityGroups:
+          - !Ref SecurityGroupDB
+        DBSubnetGroupName: !Ref DBSubnetGroup
+        DBParameterGroupName: !Ref DBParameterGroup
+    DeletionPolicy: Delete
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: RDS SubnetGroup
+      DBSubnetGroupName: udemy-rails-kj-db-subnet-group
+      SubnetIds:
+        - !ImportValue PrivateSubnet1a
+        - !ImportValue PrivateSubnet1c
+      Tags: 
+        - Key: Name
+          Value: udemy-rails-kj-db-subnet-group
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: RDS ParametersGroup
+      Family: mysql8.0
+      Tags: 
+        - Key: Name
+          Value: udemy-rails-kj-db-parameters-group
