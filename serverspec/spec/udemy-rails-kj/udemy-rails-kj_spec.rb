@@ -41,7 +41,7 @@ end
 
 # Node.jsがインストールされていること
 describe command('node -v') do
-  its(:stdout) { should match /v14\.11\.0/ }
+  its(:stdout) { should match /v15\.0+/ }
 end
 
 # Yarnがインストールされていること
@@ -60,7 +60,7 @@ end
    mysql-community-devel 
    mysql-community-libs 
    mysql-community-server 
-   mysql57-community-release}.each do |pkg|
+   mysql80-community-release}.each do |pkg|
   describe package(pkg) do
     it { should be_installed }
   end
