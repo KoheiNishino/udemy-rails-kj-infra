@@ -1,0 +1,15 @@
+---
+- name: Install nginx
+  become: yes
+  yum:
+    name: "{{ nginx_download_url }}"
+    state: present
+    lock_timeout: 180
+
+- name: Install nginx package
+  become: yes
+  yum:
+    name: nginx
+    state: present
+    lock_timeout: 180
+  when: not ansible_check_mode

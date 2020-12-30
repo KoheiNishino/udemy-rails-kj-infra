@@ -1,0 +1,10 @@
+---
+- name: Playbook for Production.
+  hosts: production
+  become: yes
+  roles:
+    - { role: git, tags: git }
+    - { role: mysql, tags: mysql }
+    - { role: nginx, tags: nginx }
+    - { role: nodejs, tags: nodejs}
+    - { role: ruby, tags: ruby }

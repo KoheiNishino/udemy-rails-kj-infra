@@ -1,0 +1,6 @@
+ruby_version: 2.4.5
+nginx_download_url: 'http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm'
+rbenv_download_url: 'https://github.com/sstephenson/rbenv.git'
+ruby_build_download_url: 'https://github.com/sstephenson/ruby-build.git'
+bundler_version: 2.0.2
+rails_version: 5.2.2

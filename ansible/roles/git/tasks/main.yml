@@ -1,0 +1,7 @@
+---
+- name: Install default installed Git
+  become: yes
+  yum:
+    name: git
+    state: latest
+    lock_timeout: 180
